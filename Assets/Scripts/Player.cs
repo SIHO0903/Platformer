@@ -8,7 +8,7 @@ public class Player : MonoBehaviour
     [Header("# Move")]
     [SerializeField] float speed;
     [SerializeField] float jumpPower;
-
+    [HideInInspector] public float moveX;
     Rigidbody2D rigid;
     SpriteRenderer sprite;
     Animator anim;
@@ -27,8 +27,8 @@ public class Player : MonoBehaviour
 
     private void Move()
     {
-        float moveX = Input.GetAxisRaw("Horizontal");
-        rigid.velocity = new Vector2(moveX * speed, rigid.velocity.y);
+        moveX = Input.GetAxisRaw("Horizontal");
+        rigid.velocity = new Vector2(moveX*speed, rigid.velocity.y);
 
         if (moveX != 0)
             sprite.flipX = moveX < 0 ? true : false;
