@@ -6230,6 +6230,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 10
   jumpPower: 30
+  jumpCount: 1
   knockbackPower: 12
 --- !u!95 &1231543334
 Animator:

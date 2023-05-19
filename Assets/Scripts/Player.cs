@@ -8,8 +8,9 @@ public class Player : MonoBehaviour
     [Header("# Move")]
     [SerializeField] float speed;
     [SerializeField] float jumpPower;
+    [SerializeField] int jumpCount;
     float moveX;
-    bool canJump;
+    bool isGround;
     bool isLongJump;
 
     [Header("# KnockBack")]
@@ -66,14 +67,17 @@ public class Player : MonoBehaviour
     {
         Debug.DrawRay(transform.position-new Vector3(0.5f,2f,0), Vector2.right);
         RaycastHit2D ground = Physics2D.Raycast(transform.position, Vector2.down, 2.1f, LayerMask.GetMask("Ground"));
-        if(ground.collider == null)
+
+        isGround = ground.collider == null ? false : true;
+
+        if (isGround)
         {
-            canJump= false;
+            jumpCount = 1; //임시코드 수정해야함
+            Jump();
         }
         else
         {
-            Jump();
-            canJump = true;
+            SpareJump();
         }
 
         //점프 세기 조절
@@ -91,15 +95,23 @@ public class Player : MonoBehaviour
     }
     private void Jump()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && canJump)
+        if (Input.GetKeyDown(KeyCode.Space))
         {
-            //rigid.velocity = Vector2.up * jumpPower;
             isLongJump=true;
-            rigid.AddForce(Vector2.up * jumpPower, ForceMode2D.Impulse);
+            rigid.velocity = Vector2.up * jumpPower;
+            //rigid.AddForce(Vector2.up * jumpPower, ForceMode2D.Impulse);
         }
         anim.SetInteger("Jump", Mathf.RoundToInt(rigid.velocity.y));
     }
-
+    void SpareJump()
+    {
+        if (Input.GetKeyDown(KeyCode.Space) && jumpCount > 0)
+        {
+            rigid.velocity = Vector2.up * jumpPower;
+            jumpCount--;
+        }
+        anim.SetInteger("Jump", Mathf.RoundToInt(rigid.velocity.y));
+    }
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("Coin"))
