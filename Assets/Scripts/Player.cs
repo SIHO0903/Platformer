@@ -5,10 +5,12 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+    public float tmp1, tmp2,tmp3;
     [Header("# Move")]
     [SerializeField] float speed;
     [SerializeField] float jumpPower;
     [SerializeField] int jumpCount;
+    [SerializeField] Transform groundCheck;
     float moveX;
     bool isGround;
     bool isLongJump;
@@ -18,7 +20,22 @@ public class Player : MonoBehaviour
     float dirX;
     bool isKnockBack;
 
+    [Header("# Wall Slide")]
+    [SerializeField] Transform wallCheck;
+    [SerializeField] bool isWallSlide;
+    [SerializeField] float wallSlideSpeed;
 
+    [Header("# Wall Jump")]
+    [SerializeField] bool isWallJump;
+    [SerializeField] float wallJumpTime;
+    [SerializeField] float curWallJumpTime;
+    [SerializeField] Vector2 wallJumpVec;
+
+    [Header("# Etc")]
+    [SerializeField] bool isEnemy;
+    [SerializeField] float killBounce;
+    [SerializeField] float killJumpTime;
+    [SerializeField] float curKillJumpTime;
     Rigidbody2D rigid;
     SpriteRenderer sprite;
     Animator anim;
@@ -33,6 +50,8 @@ public class Player : MonoBehaviour
 
     void Update()
     {
+        isGround = Physics2D.OverlapBox(groundCheck.position, new Vector2(0.9f, 0.2f), 0, LayerMask.GetMask("Ground"));
+        isWallSlide = Physics2D.Raycast(wallCheck.position, transform.right, 1.1f * moveX, LayerMask.GetMask("Ground"));
         if (isKnockBack)
             StartCoroutine(KnockBack());
         else
@@ -40,14 +59,62 @@ public class Player : MonoBehaviour
             Move();
             JumpCheck();
         }
+        WallJumpTime();
+        if (isEnemy)
+            curKillJumpTime -= Time.deltaTime;
+
+        if (curKillJumpTime <= 0)
+        {
+            isEnemy = false;
+            curKillJumpTime = killJumpTime;
+        }
     }
+
+    private void WallJumpTime()
+    {
+        if (isWallSlide && !isGround && Input.GetKeyDown(KeyCode.Space))
+        {
+            isWallJump = true;
+        }
+
+        if (isWallJump)
+            curWallJumpTime -= Time.deltaTime;
+
+        if (curWallJumpTime <= 0)
+        {
+            isWallJump = false;
+            curWallJumpTime = wallJumpTime;
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        WallSlideANDJump();
+
+        if(isEnemy)
+        {
+            rigid.velocity = new Vector2(rigid.velocity.x, killBounce);
+        }
+    }
+
+    private void WallSlideANDJump()
+    {
+        if (isWallSlide && !isGround)
+        {
+            rigid.velocity = new Vector2(rigid.velocity.x, -wallSlideSpeed);
+        }
+        if (isWallJump)
+        {
+            rigid.velocity = new Vector2(wallJumpVec.x * -moveX, wallJumpVec.y);
+            Debug.Log("asdf");
+        }
+    }
+
+
     IEnumerator KnockBack()
     {
-        //rad = deg * Mathf.Deg2Rad;
-        //rigid.velocity = new Vector2(dirX * Mathf.Cos(rad), Mathf.Sin(rad)) * knockbackPower;
-        //Debug.Log(Mathf.Cos(rad) + " / " + Mathf.Sin(rad));
         rigid.velocity = new Vector2(dirX * knockbackPower, knockbackPower);
-        //rigid.AddForce(new Vector2(dirX * knockbackPower, knockbackPower), ForceMode2D.Impulse);
+
         yield return kncokBackTime;
 
         isKnockBack= false;
@@ -55,7 +122,7 @@ public class Player : MonoBehaviour
     private void Move()
     {
         moveX = Input.GetAxisRaw("Horizontal");
-        rigid.velocity = new Vector2(moveX*speed, rigid.velocity.y);
+        rigid.velocity = new Vector2(moveX * speed, rigid.velocity.y);
 
         if (moveX != 0)
             sprite.flipX = moveX < 0 ? true : false;
@@ -63,12 +130,9 @@ public class Player : MonoBehaviour
         anim.SetBool("Run", moveX != 0);
     }
 
+
     void JumpCheck()
     {
-        Debug.DrawRay(transform.position-new Vector3(0.5f,2f,0), Vector2.right);
-        RaycastHit2D ground = Physics2D.Raycast(transform.position, Vector2.down, 2.1f, LayerMask.GetMask("Ground"));
-
-        isGround = ground.collider == null ? false : true;
 
         if (isGround)
         {
@@ -99,18 +163,26 @@ public class Player : MonoBehaviour
         {
             isLongJump=true;
             rigid.velocity = Vector2.up * jumpPower;
-            //rigid.AddForce(Vector2.up * jumpPower, ForceMode2D.Impulse);
         }
         anim.SetInteger("Jump", Mathf.RoundToInt(rigid.velocity.y));
     }
+
     void SpareJump()
     {
         if (Input.GetKeyDown(KeyCode.Space) && jumpCount > 0)
         {
-            rigid.velocity = Vector2.up * jumpPower;
+            rigid.velocity = Vector2.up * jumpPower*0.8f;
             jumpCount--;
         }
         anim.SetInteger("Jump", Mathf.RoundToInt(rigid.velocity.y));
+    }
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Enemy"))
+        {
+            isEnemy=true;
+            collision.gameObject.SetActive(false);
+        }
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {

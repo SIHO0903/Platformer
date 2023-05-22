@@ -23,6 +23,9 @@ public class GameManager : MonoBehaviour
     public void NextStage()
     {
         stage++;
+        if(stage == 2) 
+            stage= 0;
         SceneManager.LoadScene(stage);
+
     }
 }
