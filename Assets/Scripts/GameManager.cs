@@ -5,8 +5,18 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-    public static GameManager Instance;
-    public Player player;
+    public static GameManager instance;
+    public static GameManager Instance
+    {
+        get
+        {
+            if(instance == null)
+            {
+                return null;
+            }
+            return instance;
+        }
+    }
 
     public int coin;
     public int stage;
@@ -14,7 +24,18 @@ public class GameManager : MonoBehaviour
     public float gameTime;
     void Awake()
     {
-        Instance= this;
+       
+        if (instance == null)
+        {
+            instance = this;
+
+            DontDestroyOnLoad(this.gameObject);
+        }
+        else
+        {
+            Destroy(this.gameObject);
+        }
+        AudioManager.instance.BGMSTART();
     }
     private void Update()
     {

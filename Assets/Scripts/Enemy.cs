@@ -18,6 +18,8 @@ public class Enemy : MonoBehaviour
 
     Vector3 dirVec;
     Rigidbody2D rigid;
+
+
     void Awake()
     {
         rigid= GetComponent<Rigidbody2D>();
@@ -46,7 +48,7 @@ public class Enemy : MonoBehaviour
 
     private void GotoPlayer()
     {
-        dirVec = (GameManager.Instance.player.transform.position - transform.position).normalized;
+        dirVec = (detect.transform.position - transform.position).normalized;
         //Debug.Log(detect.collider.name);
         rigid.velocity = new Vector2(dirVec.x * moveSpeed ,rigid.velocity.y);
     }

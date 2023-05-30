@@ -36,6 +36,13 @@ public class Player : MonoBehaviour
     [SerializeField] float killBounce;
     [SerializeField] float killJumpTime;
     [SerializeField] float curKillJumpTime;
+
+
+
+
+
+
+
     Rigidbody2D rigid;
     SpriteRenderer sprite;
     Animator anim;
@@ -46,6 +53,7 @@ public class Player : MonoBehaviour
         sprite = GetComponent<SpriteRenderer>();
         anim = GetComponent<Animator>();
         kncokBackTime = new WaitForSeconds(0.15f);
+
     }
 
     void Update()
@@ -91,6 +99,7 @@ public class Player : MonoBehaviour
     {
         WallSlideANDJump();
 
+        //Hit
         if(isEnemy)
         {
             rigid.velocity = new Vector2(rigid.velocity.x, killBounce);
@@ -106,7 +115,6 @@ public class Player : MonoBehaviour
         if (isWallJump)
         {
             rigid.velocity = new Vector2(wallJumpVec.x * -moveX, wallJumpVec.y);
-            Debug.Log("asdf");
         }
     }
 
@@ -127,9 +135,9 @@ public class Player : MonoBehaviour
         if (moveX != 0)
             sprite.flipX = moveX < 0 ? true : false;
 
+
         anim.SetBool("Run", moveX != 0);
     }
-
 
     void JumpCheck()
     {
@@ -163,6 +171,7 @@ public class Player : MonoBehaviour
         {
             isLongJump=true;
             rigid.velocity = Vector2.up * jumpPower;
+            AudioManager.instance.SFXPlayer("Jump1");
         }
         anim.SetInteger("Jump", Mathf.RoundToInt(rigid.velocity.y));
     }
@@ -173,6 +182,7 @@ public class Player : MonoBehaviour
         {
             rigid.velocity = Vector2.up * jumpPower*0.8f;
             jumpCount--;
+            AudioManager.instance.SFXPlayer("Jump2");
         }
         anim.SetInteger("Jump", Mathf.RoundToInt(rigid.velocity.y));
     }
@@ -180,7 +190,8 @@ public class Player : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Enemy"))
         {
-            isEnemy=true;
+            AudioManager.instance.SFXPlayer("Hit");
+            isEnemy =true;
             collision.gameObject.SetActive(false);
         }
     }
@@ -188,18 +199,21 @@ public class Player : MonoBehaviour
     {
         if (collision.CompareTag("Coin"))
         {
+            AudioManager.instance.SFXPlayer("Coin");
             collision.gameObject.SetActive(false);
-            GameManager.Instance.coin++;
+            GameManager.instance.coin++;
         }
 
         if (collision.CompareTag("End"))
         {
-            GameManager.Instance.NextStage();
+            AudioManager.instance.SFXPlayer("Clear");
+            GameManager.instance.NextStage();
         }
 
         if (collision.CompareTag("Enemy"))
         {
-            isKnockBack= true;
+            AudioManager.instance.SFXPlayer("Damaged");
+            isKnockBack = true;
             Vector3 knockbackVec = (collision.transform.position - transform.position);
             dirX = knockbackVec.x < 0 ? dirX = 1 : dirX = -1;
         }
